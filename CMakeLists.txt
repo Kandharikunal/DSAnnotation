@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(AnnotationParser)
-
+ 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -8,15 +8,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # GitHub Coverage Support
 # ------------------------------
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
-# ------------------------------
 
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(STATUS "Building with coverage flags")
+    add_compile_options(--coverage -O0 -g)
+    add_link_options(--coverage)
+endif()
+# ------------------------------
+ 
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
 
 # Enable testing
 enable_testing()
 
-# Define source files
+# Define source files (excluding main.cpp)
 set(PARSER_SOURCES
     ASTVisitor.cpp
     ComponentParser.cpp
@@ -62,45 +68,27 @@ if (WIN32)
         option
         binaryformat
         demangle
+        # add more if you get linker errors
     )
 else()
     set(CLANG_LIBS clang-cpp)
     set(LLVM_LIBS LLVM)
 endif()
-
+ 
 target_link_libraries(parser_lib
     PUBLIC
     ${CLANG_LIBS}
     ${LLVM_LIBS}
 )
-
+ 
 target_compile_definitions(parser_lib
     PUBLIC
     ${LLVM_DEFINITIONS}
 )
 
-# ------------------------------
-# Coverage flags applied after target creation
-# ------------------------------
-if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    # Apply coverage to library
-    target_compile_options(parser_lib PRIVATE --coverage -O0 -g)
-    target_link_options(parser_lib PRIVATE --coverage)
-endif()
-# ------------------------------
-
-# Create the executable
+# Create the executable from main.cpp and link it with the library
 add_executable(parser main.cpp)
 target_link_libraries(parser PRIVATE parser_lib)
-
-# ------------------------------
-# Apply coverage to executable as well
-# ------------------------------
-if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(parser PRIVATE --coverage -O0 -g)
-    target_link_options(parser PRIVATE --coverage)
-endif()
-# ------------------------------
 
 # Add tests subdirectory
 add_subdirectory(tests)

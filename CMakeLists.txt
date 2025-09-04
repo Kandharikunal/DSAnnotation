@@ -40,6 +40,13 @@ set(PARSER_SOURCES
 # Create a library from the parser sources
 add_library(parser_lib ${PARSER_SOURCES})
 
+# Force coverage instrumentation for all source files when coverage is enabled
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    foreach(SOURCE ${PARSER_SOURCES})
+        set_source_files_properties(${SOURCE} PROPERTIES COMPILE_FLAGS "--coverage")
+    endforeach()
+endif()
+
 target_include_directories(parser_lib
     PUBLIC 
     ${LLVM_INCLUDE_DIRS}

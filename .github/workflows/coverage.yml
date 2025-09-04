@@ -69,28 +69,20 @@ jobs:
                 --xml coverage-report/coverage.xml \
                 --html-details coverage-report/index.html
           cat coverage-report/coverage.txt
-
-      - name: Upload coverage artifacts
+          
+      - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
-          path: coverage-report
+          path: |
+            coverage.info
+            coverage.txt
+            coverage.xml
+            coverage.html
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: coverage-report
-
-  deploy-coverage:
-    needs: coverage
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Append coverage summary to job
+        run: |
+          echo "### Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

@@ -1,46 +1,52 @@
-name: C++ Coverage
+name: CI Coverage
 
 on:
   push:
+    branches:
+      - coverage-setup
   pull_request:
+    branches:
+      - main
 
 jobs:
-  build-test-cover:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ cmake make lcov
+          sudo apt-get install -y \
+            cmake \
+            ninja-build \
+            lcov \
+            llvm-dev clang libclang-dev \
+            libz-dev libffi-dev libxml2-dev zlib1g-dev
 
       - name: Configure with coverage
-        run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
 
       - name: Build
-        run: cmake --build build --config Debug -- -j
+        run: cmake --build build -j
 
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure
+        run: cd build && ctest --output-on-failure
 
-      - name: Capture coverage (lcov)
+      - name: Capture coverage info
         run: |
           lcov --capture --directory build --output-file coverage.info
-          # filter out system and test files (adjust patterns if needed)
-          lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' --output-file coverage.info
           lcov --list coverage.info
 
       - name: Generate HTML report
-        run: genhtml coverage.info --output-directory coverage_html
+        run: |
+          genhtml coverage.info --output-directory coverage-report
 
-      - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
         with:
-          name: coverage
-          path: |
-            coverage.info
-            coverage_html
+          name: coverage-report
+          path: coverage-report

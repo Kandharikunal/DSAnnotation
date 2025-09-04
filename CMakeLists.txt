@@ -83,6 +83,7 @@ target_compile_definitions(parser_lib
 # Coverage flags applied after target creation
 # ------------------------------
 if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # Apply coverage to library
     target_compile_options(parser_lib PRIVATE --coverage -O0 -g)
     target_link_options(parser_lib PRIVATE --coverage)
 endif()
@@ -91,6 +92,15 @@ endif()
 # Create the executable
 add_executable(parser main.cpp)
 target_link_libraries(parser PRIVATE parser_lib)
+
+# ------------------------------
+# Apply coverage to executable as well
+# ------------------------------
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(parser PRIVATE --coverage -O0 -g)
+    target_link_options(parser PRIVATE --coverage)
+endif()
+# ------------------------------
 
 # Add tests subdirectory
 add_subdirectory(tests)

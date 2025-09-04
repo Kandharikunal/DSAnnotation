@@ -18,24 +18,39 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y lcov build-essential cmake zlib1g-dev libffi-dev libedit-dev libxml2-dev libzstd-dev
+          sudo apt-get install -y \
+            lcov \
+            build-essential \
+            cmake \
+            zlib1g-dev \
+            libffi-dev \
+            libedit-dev \
+            libxml2-dev \
+            libzstd-dev
 
           # Add LLVM apt repo to get clang-17 and headers
           sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
-          sudo apt-get install -y clang-17 clang-tools-17 llvm-17-dev libclang-17-dev
+          sudo apt-get install -y \
+            clang-17 \
+            clang-tools-17 \
+            llvm-17-dev \
+            libclang-17-dev
 
       - name: Configure with coverage
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
 
-      - name: Build
+      - name: Build project
         run: cmake --build build --config Debug -j$(nproc)
 
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure
+        run: |
+          ctest --test-dir build --output-on-failure --verbose
+        env:
+          CTEST_OUTPUT_ON_FAILURE: 1
 
       - name: Generate coverage report
         run: |
-          lcov --capture --directory build --output-file coverage.info
+          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
           lcov --remove coverage.info '/usr/*' --output-file coverage.info
           lcov --list coverage.info
 

@@ -10,9 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
 
 if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    message(STATUS "Building with coverage flags")
-    add_compile_options(--coverage -O0 -g)
-    add_link_options(--coverage)
+    target_compile_options(parser_lib PRIVATE --coverage -O0 -g)
+    target_link_options(parser_lib PRIVATE --coverage)
 endif()
 # ------------------------------
  

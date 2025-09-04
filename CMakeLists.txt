@@ -3,6 +3,18 @@ project(AnnotationParser)
  
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# ------------------------------
+# GitHub Coverage Support
+# ------------------------------
+option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
+
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(STATUS "Building with coverage flags")
+    add_compile_options(--coverage -O0 -g)
+    add_link_options(--coverage)
+endif()
+# ------------------------------
  
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)

@@ -11,6 +11,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 include_directories(${CMAKE_SOURCE_DIR})
+
 add_executable(unit_tests
     PropertyParserTest.cpp
     # Add other test files here
@@ -22,5 +23,16 @@ target_link_libraries(unit_tests
     parser_lib  # Link to the library instead of the executable
     # Your project libraries
 )
+
+# ------------------------------
+# Coverage support for tests
+# ------------------------------
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(unit_tests PRIVATE --coverage -O0 -g)
+    target_link_options(unit_tests PRIVATE --coverage)
+endif()
+# ------------------------------
+
+
 add_test(NAME unit_tests COMMAND unit_tests)
 set_tests_properties(unit_tests PROPERTIES ENVIRONMENT "GTEST_COLOR=1")

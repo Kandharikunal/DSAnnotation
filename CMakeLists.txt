@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(AnnotationParser)
- 
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -8,20 +8,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # GitHub Coverage Support
 # ------------------------------
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
-
-if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(parser_lib PRIVATE --coverage -O0 -g)
-    target_link_options(parser_lib PRIVATE --coverage)
-endif()
 # ------------------------------
- 
+
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
 
 # Enable testing
 enable_testing()
 
-# Define source files (excluding main.cpp)
+# Define source files
 set(PARSER_SOURCES
     ASTVisitor.cpp
     ComponentParser.cpp
@@ -67,25 +62,33 @@ if (WIN32)
         option
         binaryformat
         demangle
-        # add more if you get linker errors
     )
 else()
     set(CLANG_LIBS clang-cpp)
     set(LLVM_LIBS LLVM)
 endif()
- 
+
 target_link_libraries(parser_lib
     PUBLIC
     ${CLANG_LIBS}
     ${LLVM_LIBS}
 )
- 
+
 target_compile_definitions(parser_lib
     PUBLIC
     ${LLVM_DEFINITIONS}
 )
 
-# Create the executable from main.cpp and link it with the library
+# ------------------------------
+# Coverage flags applied after target creation
+# ------------------------------
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(parser_lib PRIVATE --coverage -O0 -g)
+    target_link_options(parser_lib PRIVATE --coverage)
+endif()
+# ------------------------------
+
+# Create the executable
 add_executable(parser main.cpp)
 target_link_libraries(parser PRIVATE parser_lib)
 

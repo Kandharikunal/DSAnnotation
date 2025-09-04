@@ -37,7 +37,7 @@ jobs:
             libclang-17-dev
 
           # Install gcovr for better coverage reporting
-            pip install gcovr
+          pip install gcovr
 
       - name: Configure with coverage
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
@@ -59,7 +59,6 @@ jobs:
 
       - name: Generate gcovr coverage report
         run: |
-          # Generate coverage report with gcovr (includes all source files by default)
           gcovr --root . \
                 --filter=".*\.cpp" \
                 --exclude-directories="build/_deps" \
@@ -68,8 +67,6 @@ jobs:
                 --txt coverage.txt \
                 --xml coverage.xml \
                 --html-details coverage.html
-          
-          # Print summary
           cat coverage.txt
 
       - name: Upload coverage reports
@@ -81,3 +78,9 @@ jobs:
             coverage.txt
             coverage.xml
             coverage.html
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true

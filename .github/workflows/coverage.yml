@@ -16,7 +16,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y lcov cmake g++ llvm clang libclang-dev
+          sudo apt-get install -y \
+            cmake ninja-build \
+            clang-17 llvm-17 llvm-17-dev clang-17-dev libclang-17-dev \
+            libffi-dev zlib1g-dev libxml2-dev libzstd-dev libtinfo-dev \
+            libgtest-dev
 
       - name: Configure with coverage
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON

@@ -76,13 +76,14 @@ jobs:
           name: coverage-reports
           path: |
             coverage.info
-            coverage.txt
-            coverage.xml
-            coverage.html
+            coverage-report/coverage.txt
+            coverage-report/coverage.xml
+            coverage-report/index.html
 
       - name: Append coverage summary to job
         run: |
           echo "### Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat coverage.txt >> $GITHUB_STEP_SUMMARY
+          cat coverage-report/coverage.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+

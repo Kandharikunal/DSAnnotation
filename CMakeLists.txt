@@ -6,9 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
  
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
- 
-add_executable(parser
-    main.cpp
+
+# Enable testing
+enable_testing()
+
+# Define source files (excluding main.cpp)
+set(PARSER_SOURCES
     ASTVisitor.cpp
     ComponentParser.cpp
     Reference.cpp
@@ -21,13 +24,17 @@ add_executable(parser
     SyntaxChecker.cpp
     ManifestMerger.cpp
 )
- 
-target_include_directories(parser
-    PRIVATE 
+
+# Create a library from the parser sources
+add_library(parser_lib ${PARSER_SOURCES})
+
+target_include_directories(parser_lib
+    PUBLIC 
     ${LLVM_INCLUDE_DIRS}
     ${CLANG_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
- 
+
 # --- Platform-dependent linking ---
 if (WIN32)
     set(CLANG_LIBS
@@ -56,13 +63,20 @@ else()
     set(LLVM_LIBS LLVM)
 endif()
  
-target_link_libraries(parser
-    PRIVATE
+target_link_libraries(parser_lib
+    PUBLIC
     ${CLANG_LIBS}
     ${LLVM_LIBS}
 )
  
-target_compile_definitions(parser
-    PRIVATE
+target_compile_definitions(parser_lib
+    PUBLIC
     ${LLVM_DEFINITIONS}
 )
+
+# Create the executable from main.cpp and link it with the library
+add_executable(parser main.cpp)
+target_link_libraries(parser PRIVATE parser_lib)
+
+# Add tests subdirectory
+add_subdirectory(tests)

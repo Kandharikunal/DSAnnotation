@@ -1,0 +1,46 @@
+name: C++ Coverage
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test-cover:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ cmake make lcov
+
+      - name: Configure with coverage
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
+
+      - name: Build
+        run: cmake --build build --config Debug -- -j
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Capture coverage (lcov)
+        run: |
+          lcov --capture --directory build --output-file coverage.info
+          # filter out system and test files (adjust patterns if needed)
+          lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+          lcov --list coverage.info
+
+      - name: Generate HTML report
+        run: genhtml coverage.info --output-directory coverage_html
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            coverage.info
+            coverage_html

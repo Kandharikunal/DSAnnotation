@@ -36,7 +36,7 @@ jobs:
             llvm-17-dev \
             libclang-17-dev
 
-          # Install gcovr for better coverage reporting
+          # Install gcovr for coverage reporting
           pip install gcovr
 
       - name: Configure with coverage
@@ -59,28 +59,38 @@ jobs:
 
       - name: Generate gcovr coverage report
         run: |
+          mkdir -p coverage-report
           gcovr --root . \
                 --filter=".*\.cpp" \
                 --exclude-directories="build/_deps" \
                 --exclude-directories="tests" \
                 --exclude="/usr/*" \
-                --txt coverage.txt \
-                --xml coverage.xml \
-                --html-details coverage.html
-          cat coverage.txt
+                --txt coverage-report/coverage.txt \
+                --xml coverage-report/coverage.xml \
+                --html-details coverage-report/index.html
+          cat coverage-report/coverage.txt
 
-      - name: Upload coverage reports
+      - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
-          path: |
-            coverage.info
-            coverage.txt
-            coverage.xml
-            coverage.html
+          path: coverage-report
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          files: coverage.xml
-          fail_ci_if_error: true
+          path: coverage-report
+
+  deploy-coverage:
+    needs: coverage
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

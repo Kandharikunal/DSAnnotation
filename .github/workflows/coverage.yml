@@ -1,39 +1,41 @@
-name: CI Coverage
+name: Coverage
 
 on:
   push:
     branches:
+      - main
       - coverage-setup
   pull_request:
 
 jobs:
-  build:
+  coverage:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            cmake ninja-build \
-            clang-17 llvm-17 llvm-17-dev clang-17-dev libclang-17-dev \
-            libffi-dev zlib1g-dev libxml2-dev libzstd-dev libtinfo-dev \
-            libgtest-dev
+          sudo apt-get install -y lcov build-essential cmake zlib1g-dev libffi-dev libedit-dev libxml2-dev libzstd-dev
+
+          # Add LLVM apt repo to get clang-17 and headers
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+          sudo apt-get install -y clang-17 clang-tools-17 llvm-17-dev libclang-17-dev
 
       - name: Configure with coverage
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --config Debug -j$(nproc)
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      - name: Capture coverage info
+      - name: Generate coverage report
         run: |
-          lcov --directory build --capture --output-file coverage.info
+          lcov --capture --directory build --output-file coverage.info
           lcov --remove coverage.info '/usr/*' --output-file coverage.info
           lcov --list coverage.info
 
